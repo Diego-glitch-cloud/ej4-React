@@ -2,7 +2,6 @@ import { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchAlbumsByTerm } from '../services/itunesApi';
 import { ThemeContext } from '../contexts/ThemeContext';
-import { CULT_BANDS } from '../data/constants';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -10,19 +9,16 @@ export default function Navbar() {
   const { theme, toggleTheme } = useContext(ThemeContext);
 
   const handleRandomAlbum = async () => {
-    // Tomamos la constante externa importada
-    const randomBand = CULT_BANDS[Math.floor(Math.random() * CULT_BANDS.length)];
+    // Generar una palabra común aleatoria para explorar verdaderamente todo el catálogo
+    const randomWords = ['love', 'world', 'time', 'life', 'star', 'blue', 'night', 'sun', 'moon', 'dream', 'fire', 'water', 'rock'];
+    const randomTerm = randomWords[Math.floor(Math.random() * randomWords.length)];
     
     try {
-      const albums = await fetchAlbumsByTerm(randomBand, 10);
+      // Obtenemos 50 discos al azar con ese término (de cualquier artista o género)
+      const albums = await fetchAlbumsByTerm(randomTerm, 50);
       
-      // Filtramos estrictamente por el nombre del artista para evitar resultados como "mgk - bloody valentine"
-      const filteredAlbums = albums.filter(album => 
-        album.artistName.toLowerCase().includes(randomBand.toLowerCase())
-      );
-
-      if (filteredAlbums.length > 0) {
-        const randomAlbum = filteredAlbums[Math.floor(Math.random() * filteredAlbums.length)];
+      if (albums.length > 0) {
+        const randomAlbum = albums[Math.floor(Math.random() * albums.length)];
         navigate(`/items/${randomAlbum.collectionId}`);
       }
     } catch (error) {

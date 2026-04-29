@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { fetchAlbumsByTerm } from '../services/itunesApi';
 import AlbumCard from '../components/AlbumCard';
-import { FAVORITE_BANDS } from '../data/constants';
+import { DEFAULT_BANDS } from '../data/constants';
 import './ItemsList.css';
 
 export default function ItemsList() {
@@ -28,7 +28,7 @@ export default function ItemsList() {
 
       setLoading(true);
       try {
-        const shuffledBands = [...FAVORITE_BANDS].sort(() => 0.5 - Math.random());
+        const shuffledBands = [...DEFAULT_BANDS].sort(() => 0.5 - Math.random());
         const selectedBands = shuffledBands.slice(0, 12);
 
         const promises = selectedBands.map(band => fetchAlbumsByTerm(band, 6));
@@ -75,8 +75,12 @@ export default function ItemsList() {
   }, [searchTerm, setSearchParams]);
 
   // 3. Efecto de búsqueda directa en la API
+  const extraGenres = ['Shoegaze', 'Metal', 'Math Rock', 'Grunge', 'Dream Pop', 'Art Rock', 'Post-Punk', 'Indie Rock'];
+  
+  const activeQuery = debouncedSearchTerm.trim() || (extraGenres.includes(selectedGenre) ? selectedGenre : '');
+
   useEffect(() => {
-    if (!debouncedSearchTerm.trim()) {
+    if (!activeQuery) {
       setSearchAlbums([]);
       return;
     }
@@ -84,8 +88,8 @@ export default function ItemsList() {
     const performSearch = async () => {
       setLoading(true);
       try {
-        const results = await fetchAlbumsByTerm(debouncedSearchTerm, 20);
-        // Filtrar duplicados pero sin restringir el artista para permitir buscar CUALQUIER cosa
+        const results = await fetchAlbumsByTerm(activeQuery, 30);
+        // Filtrar duplicados
         const uniqueAlbums = results.filter((album, index, self) =>
           index === self.findIndex((a) => a.collectionId === album.collectionId)
         );
@@ -98,18 +102,25 @@ export default function ItemsList() {
     };
 
     performSearch();
-  }, [debouncedSearchTerm]);
+  }, [activeQuery]);
 
-  const isSearching = debouncedSearchTerm.trim().length > 0;
+  const isSearching = activeQuery.length > 0;
   const baseAlbums = isSearching ? searchAlbums : curatedAlbums;
 
   // Extraer valores únicos para los filtros a partir de los resultados base
-  const uniqueGenres = [...new Set(baseAlbums.map(a => a.primaryGenreName))].filter(Boolean).sort();
+  const uniqueGenresAPI = [...new Set(baseAlbums.map(a => a.primaryGenreName))].filter(Boolean);
+  const uniqueGenres = [...new Set([...uniqueGenresAPI, ...extraGenres])].sort();
+  
   const uniqueYears = [...new Set(baseAlbums.map(a => a.releaseDate ? new Date(a.releaseDate).getFullYear() : null))].filter(Boolean).sort((a, b) => b - a);
 
   // Aplicar filtros de género y año
   const displayedAlbums = baseAlbums.filter(album => {
-    const matchGenre = selectedGenre ? album.primaryGenreName === selectedGenre : true;
+    // Si el género seleccionado es uno de los extraGenres, relajamos el filtro local
+    // porque la API ya se encargó de buscar discos relacionados a ese género.
+    const matchGenre = selectedGenre 
+      ? (album.primaryGenreName === selectedGenre || extraGenres.includes(selectedGenre)) 
+      : true;
+      
     const year = album.releaseDate ? new Date(album.releaseDate).getFullYear() : null;
     const matchYear = selectedYear ? year === Number(selectedYear) : true;
     return matchGenre && matchYear;
@@ -136,31 +147,35 @@ export default function ItemsList() {
             />
           </div>
 
-          {!loading && baseAlbums.length > 0 && (
-            <div className="filters-container" style={{ display: 'flex', gap: '1rem', marginTop: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <select 
-                value={selectedGenre} 
-                onChange={(e) => setSelectedGenre(e.target.value)}
-                className="filter-select"
-                style={{ padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', outline: 'none' }}
-              >
-                <option value="">Todos los Géneros</option>
-                {uniqueGenres.map(genre => (
-                  <option key={genre} value={genre}>{genre}</option>
-                ))}
-              </select>
+          {!loading && (baseAlbums.length > 0 || selectedGenre) && (
+            <div className="filters-container">
+              <div className="filter-group">
+                <label className="filter-label">Filtrar por Género</label>
+                <select 
+                  value={selectedGenre} 
+                  onChange={(e) => setSelectedGenre(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="">Todos los Géneros</option>
+                  {uniqueGenres.map(genre => (
+                    <option key={genre} value={genre}>{genre}</option>
+                  ))}
+                </select>
+              </div>
 
-              <select 
-                value={selectedYear} 
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="filter-select"
-                style={{ padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', outline: 'none' }}
-              >
-                <option value="">Todos los Años</option>
-                {uniqueYears.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
+              <div className="filter-group">
+                <label className="filter-label">Filtrar por Año</label>
+                <select 
+                  value={selectedYear} 
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="">Todos los Años</option>
+                  {uniqueYears.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
         </header>
@@ -181,9 +196,10 @@ export default function ItemsList() {
                 />
               ))
             ) : (
-              <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                No se encontraron álbumes en la búsqueda global para "{searchTerm}".
-              </p>
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                <p style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>No se encontraron álbumes.</p>
+                <p>Intenta ajustar tus filtros o buscar otra banda.</p>
+              </div>
             )}
           </div>
         )}

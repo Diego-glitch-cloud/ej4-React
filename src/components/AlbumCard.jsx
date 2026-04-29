@@ -9,12 +9,14 @@ export default function AlbumCard({ id, title, artist, coverUrl, releaseDate }) 
   const favorite = isFavorite(id);
   // Extraer el año de la fecha de lanzamiento (ej: "1997-05-21T07:00:00Z" -> "1997")
   const year = releaseDate ? new Date(releaseDate).getFullYear() : '';
+  // Mejorar calidad de la imagen de forma segura
+  const highResCover = coverUrl ? coverUrl.replace('100x100bb', '400x400bb') : '';
 
   return (
     <div className="album-card">
       <div className="album-card-image">
         {/* Cambiamos el 100x100 por 400x400 para mejor calidad */}
-        <img src={coverUrl.replace('100x100bb', '400x400bb')} alt={`Portada de ${title}`} loading="lazy" />
+        <img src={highResCover} alt={`Portada de ${title}`} loading="lazy" />
         <div className="album-card-overlay">
           <Link to={`/items/${id}`} className="view-btn">Ver Detalles</Link>
           {/* Botón de favorito usando el contexto */}

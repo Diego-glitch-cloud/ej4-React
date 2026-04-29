@@ -1,57 +1,57 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchAlbumById } from '../services/itunesApi';
+import { FavoritesContext } from '../contexts/FavoritesContext';
 import './ItemDetail.css';
 
-const MUSIC_QUOTES = [
-  { text: "La música puede cambiar el mundo porque puede cambiar a las personas.", author: "Bono" },
+const QUOTES = [
+  { text: "La música es el vino que inspira nuevas creaciones.", author: "Beethoven" },
+  { text: "Sin música, la vida sería un error.", author: "Nietzsche" },
   { text: "Una cosa buena de la música, es que cuando te golpea, no sientes dolor.", author: "Bob Marley" },
-  { text: "Sin música, la vida sería un error.", author: "Friedrich Nietzsche" },
-  { text: "La música expresa lo que no puede ser dicho y aquello sobre lo que es imposible permanecer en silencio.", author: "Victor Hugo" },
+  { text: "La música expresa aquello que no puede decirse y sobre lo que es imposible estar en silencio.", author: "Victor Hugo" },
   { text: "Donde las palabras fallan, la música habla.", author: "Hans Christian Andersen" },
-  { text: "La música es el lenguaje universal de la humanidad.", author: "Henry Wadsworth Longfellow" },
-  { text: "La música es el arte más directo, entra por el oído y va al corazón.", author: "Magdalena Martínez" }
+  { text: "La música puede cambiar el mundo porque puede cambiar a las personas.", author: "Bono" },
+  { text: "La música es música y sin música no habría música; por eso me gusta la música.", author: "Yo" },
 ];
 
 export default function ItemDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [albumData, setAlbumData] = useState(null);
+  const [album, setAlbum] = useState(null);
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Elegir una frase basada en el ID del álbum (para que siempre sea la misma para un álbum específico)
-  const albumQuote = useMemo(() => {
-    const seed = parseInt(id) || 0;
-    return MUSIC_QUOTES[seed % MUSIC_QUOTES.length];
-  }, [id]);
+  // Integración de FavoritesContext
+  const { isFavorite, toggleFavorite } = useContext(FavoritesContext);
 
   useEffect(() => {
-    const getAlbumDetails = async () => {
+    const loadDetails = async () => {
       setLoading(true);
       try {
         const results = await fetchAlbumById(id);
         if (results && results.length > 0) {
-          // El primer resultado es la información del álbum
-          setAlbumData(results[0]);
-          // Los resultados restantes son las canciones
+          setAlbum(results[0]);
           setTracks(results.slice(1));
         }
       } catch (error) {
-        console.error('Error fetching album details:', error);
+        console.error("Error al cargar detalles", error);
       } finally {
         setLoading(false);
       }
     };
 
-    getAlbumDetails();
+    loadDetails();
   }, [id]);
 
-  if (loading) {
-    return <div className="loader">Cargando detalles del álbum...</div>;
-  }
+  // Seleccionar una frase determinista basada en el ID del álbum
+  const selectedQuote = useMemo(() => {
+    if (!id) return QUOTES[0];
+    const index = parseInt(id, 10) % QUOTES.length;
+    return QUOTES[index];
+  }, [id]);
 
-  if (!albumData) {
+  if (loading) return <div className="loader">Cargando disco...</div>;
+  if (!album) {
     return (
       <div className="container" style={{ textAlign: 'center', marginTop: '4rem' }}>
         <h2>Álbum no encontrado</h2>
@@ -60,9 +60,10 @@ export default function ItemDetail() {
     );
   }
 
-  // Mejorar la calidad de la portada (de 100x100 a 600x600)
-  const highResCover = albumData.artworkUrl100.replace('100x100bb', '600x600bb');
-  const year = new Date(albumData.releaseDate).getFullYear();
+  // Mejorar la calidad de la portada de forma segura
+  const highResCover = album.artworkUrl100 ? album.artworkUrl100.replace('100x100bb', '600x600bb') : '';
+  const year = album.releaseDate ? new Date(album.releaseDate).getFullYear() : '';
+  const favorite = isFavorite(album.collectionId);
 
   return (
     <div className="item-detail-page">
@@ -74,17 +75,37 @@ export default function ItemDetail() {
       {/* Hero Section */}
       <div className="detail-hero">
         <div className="hero-content">
-          <span className="hero-tag">{albumData.primaryGenreName}</span>
-          <h1 className="hero-title">{albumData.collectionName}</h1>
-          <p className="hero-artist">Un álbum de <strong>{albumData.artistName}</strong></p>
+          <span className="hero-tag">{album.primaryGenreName}</span>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <h1 className="hero-title" style={{ margin: 0 }}>{album.collectionName}</h1>
+            <button 
+              className={`favorite-btn ${favorite ? 'active' : ''}`}
+              style={{ position: 'static', transform: 'none', background: 'rgba(255,255,255,0.1)', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer', border: 'none', outline: 'none' }}
+              onClick={() => toggleFavorite({ 
+                id: album.collectionId, 
+                title: album.collectionName, 
+                artist: album.artistName, 
+                coverUrl: album.artworkUrl100, 
+                releaseDate: album.releaseDate 
+              })}
+              title={favorite ? "Quitar de favoritos" : "Añadir a favoritos"}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill={favorite ? "var(--primary)" : "none"} stroke={favorite ? "var(--primary)" : "white"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            </button>
+          </div>
+
+          <p className="hero-artist">Un álbum de <strong>{album.artistName}</strong></p>
           <div className="hero-metadata">
             <span>{year}</span>
             <span className="separator">•</span>
-            <span>{albumData.trackCount} canciones</span>
+            <span>{album.trackCount} canciones</span>
           </div>
         </div>
         <div className="hero-image">
-          <img src={highResCover} alt={`Portada de ${albumData.collectionName}`} />
+          <img src={highResCover} alt={`Portada de ${album.collectionName}`} />
         </div>
       </div>
 
@@ -107,15 +128,15 @@ export default function ItemDetail() {
             ))}
           </div>
         </div>
-        
+
         {/* Quote Block (Diseño Premium) */}
         <div className="quote-section">
           <div className="quote-block">
             <span className="quote-mark">“</span>
             <blockquote>
-              {albumQuote.text}
+              {selectedQuote.text}
             </blockquote>
-            <cite>— {albumQuote.author}</cite>
+            <cite>— {selectedQuote.author}</cite>
           </div>
         </div>
       </div>
