@@ -41,7 +41,7 @@ export default function ItemsList() {
   }, []);
 
   return (
-    <div className="items-list-page">
+    <div className="items-list-page light-section">
       <header className="page-header">
         <h1>Explorar Álbumes</h1>
         <p>Una selección curada de nuestras bandas favoritas.</p>

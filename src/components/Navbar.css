@@ -25,12 +25,35 @@
 }
 
 .navbar-links a {
-  color: #ccc;
+  color: #a1a1aa;
   text-decoration: none;
   transition: color 0.2s;
-  font-weight: 500;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid transparent;
 }
 
 .navbar-links a:hover {
   color: white;
+  border-bottom: 2px solid var(--primary);
+}
+
+.btn-random {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.btn-random:hover {
+  color: var(--accent);
 }

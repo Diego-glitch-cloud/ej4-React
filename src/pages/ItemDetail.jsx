@@ -1,14 +1,108 @@
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { fetchAlbumById } from '../services/itunesApi';
+import './ItemDetail.css';
 
 export default function ItemDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [albumData, setAlbumData] = useState(null);
+  const [tracks, setTracks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getAlbumDetails = async () => {
+      setLoading(true);
+      try {
+        const results = await fetchAlbumById(id);
+        if (results && results.length > 0) {
+          // El primer resultado es la información del álbum
+          setAlbumData(results[0]);
+          // Los resultados restantes son las canciones
+          setTracks(results.slice(1));
+        }
+      } catch (error) {
+        console.error('Error fetching album details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getAlbumDetails();
+  }, [id]);
+
+  if (loading) {
+    return <div className="loader">Cargando detalles del álbum...</div>;
+  }
+
+  if (!albumData) {
+    return (
+      <div className="container" style={{ textAlign: 'center', marginTop: '4rem' }}>
+        <h2>Álbum no encontrado</h2>
+        <button onClick={() => navigate('/items')} className="btn-secondary">Volver al listado</button>
+      </div>
+    );
+  }
+
+  // Mejorar la calidad de la portada (de 100x100 a 600x600)
+  const highResCover = albumData.artworkUrl100.replace('100x100bb', '600x600bb');
+  const year = new Date(albumData.releaseDate).getFullYear();
 
   return (
-    <div className="item-detail">
-      <h2>Detalle del Álbum</h2>
-      <p>ID del álbum: {id}</p>
-      <button onClick={() => navigate(-1)} className="btn-secondary">Volver</button>
+    <div className="item-detail-page">
+      {/* Botón de regreso */}
+      <button onClick={() => navigate(-1)} className="btn-back">
+        ← Volver
+      </button>
+
+      {/* Hero Section */}
+      <div className="detail-hero">
+        <div className="hero-content">
+          <span className="hero-tag">{albumData.primaryGenreName}</span>
+          <h1 className="hero-title">{albumData.collectionName}</h1>
+          <p className="hero-artist">Un álbum de <strong>{albumData.artistName}</strong></p>
+          <div className="hero-metadata">
+            <span>{year}</span>
+            <span className="separator">•</span>
+            <span>{albumData.trackCount} canciones</span>
+          </div>
+        </div>
+        <div className="hero-image">
+          <img src={highResCover} alt={`Portada de ${albumData.collectionName}`} />
+        </div>
+      </div>
+
+      {/* Tracklist Section */}
+      <div className="detail-content">
+        <div className="tracklist-section">
+          <h2 className="section-title">En Reproducción (Tracklist)</h2>
+          <div className="tracklist">
+            {tracks.map((track, index) => (
+              <div key={track.trackId} className="track-item">
+                <span className="track-number">{index + 1}</span>
+                <div className="track-info">
+                  <span className="track-name">{track.trackName}</span>
+                  <span className="track-time">
+                    {Math.floor(track.trackTimeMillis / 60000)}:
+                    {((track.trackTimeMillis % 60000) / 1000).toFixed(0).padStart(2, '0')}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Quote Block (Diseño Premium) */}
+        <div className="quote-section">
+          <div className="quote-block">
+            <span className="quote-mark">“</span>
+            <blockquote>
+              La música puede cambiar el mundo porque puede cambiar a las personas.
+            </blockquote>
+            <cite>— Bono</cite>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
