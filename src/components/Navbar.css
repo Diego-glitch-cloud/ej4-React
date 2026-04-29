@@ -25,7 +25,7 @@
 }
 
 .navbar-links a {
-  color: #a1a1aa;
+  color: var(--text-secondary);
   text-decoration: none;
   transition: color 0.2s;
   font-family: var(--font-sans);
@@ -38,14 +38,14 @@
 }
 
 .navbar-links a:hover {
-  color: white;
+  color: var(--text-primary);
   border-bottom: 2px solid var(--primary);
 }
 
 .btn-random {
   background: none;
   border: none;
-  color: #ccc;
+  color: var(--text-secondary);
   font-family: var(--font-sans);
   font-weight: 500;
   font-size: 1rem;
@@ -55,5 +55,5 @@
 }
 
 .btn-random:hover {
-  color: var(--accent);
+  color: var(--primary);
 }

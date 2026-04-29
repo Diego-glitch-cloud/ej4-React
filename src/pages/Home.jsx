@@ -102,7 +102,7 @@ export default function Home() {
               </div>
             </div>
 
-            <Link to="/items" className="btn-secondary full-width">♫ Ver Playlist Completa</Link>
+            <Link to="/items" className="btn-secondary full-width">Explorar más</Link>
           </div>
 
           <div className="quote-area">

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { fetchAlbumsByTerm } from '../services/itunesApi';
 import AlbumCard from '../components/AlbumCard';
 import './ItemsList.css';
@@ -15,15 +16,22 @@ const FAVORITE_BANDS = [
 ];
 
 export default function ItemsList() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+
   const [curatedAlbums, setCuratedAlbums] = useState([]);
   const [searchAlbums, setSearchAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  
+  const [searchTerm, setSearchTerm] = useState(initialQuery);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialQuery);
 
-  // 1. Cargar álbumes curados iniciales
+  // 1. Cargar álbumes curados iniciales (solo si no hay búsqueda activa inicial)
   useEffect(() => {
     const loadCurated = async () => {
+      // Si la URL ya tiene una búsqueda inicial, no saturamos cargando curados
+      if (initialQuery) return;
+
       setLoading(true);
       try {
         const shuffledBands = [...FAVORITE_BANDS].sort(() => 0.5 - Math.random());
@@ -42,7 +50,9 @@ export default function ItemsList() {
           );
         });
 
-        setCuratedAlbums(uniqueAlbums);
+        const shuffledAlbums = [...uniqueAlbums].sort(() => 0.5 - Math.random());
+
+        setCuratedAlbums(shuffledAlbums);
       } catch (error) {
         console.error("Error al cargar los álbumes", error);
       } finally {
@@ -51,16 +61,24 @@ export default function ItemsList() {
     };
 
     loadCurated();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2. Debounce effect (retraso de 1 segundo)
+  // 2. Debounce effect y persistencia en la URL
   useEffect(() => {
     const timerId = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
+      
+      // Actualizamos la URL (con replace: true para no llenar el historial de letras sueltas)
+      if (searchTerm.trim() !== '') {
+        setSearchParams({ q: searchTerm }, { replace: true });
+      } else {
+        setSearchParams({}, { replace: true });
+      }
     }, 1000);
 
     return () => clearTimeout(timerId);
-  }, [searchTerm]);
+  }, [searchTerm, setSearchParams]);
 
   // 3. Efecto de búsqueda directa en la API
   useEffect(() => {
@@ -98,13 +116,19 @@ export default function ItemsList() {
           <h1>Explorar Álbumes</h1>
           <p>Una selección curada de nuestras bandas favoritas.</p>
           
-          <input 
-            type="text" 
-            className="search-input" 
-            placeholder="Buscar por álbum o banda..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <div className="search-container">
+            <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              className="search-input" 
+              placeholder="Busca álbumes, artistas, géneros..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </header>
 
         {loading ? (
