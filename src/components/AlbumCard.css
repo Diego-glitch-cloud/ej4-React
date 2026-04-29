@@ -70,6 +70,33 @@
   transform: translateY(0);
 }
 
+.favorite-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.favorite-btn:hover {
+  transform: scale(1.1);
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.favorite-btn.active {
+  background: var(--surface);
+}
+
 .album-card-content {
   padding: 1.25rem;
   display: flex;

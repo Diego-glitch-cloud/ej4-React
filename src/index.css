@@ -15,6 +15,17 @@
   --font-sans: 'Inter', sans-serif;
 }
 
+/* Variables para Modo Claro */
+[data-theme="light"] {
+  --bg-main: #F4F4F5;
+  --surface: #FFFFFF;
+  --text-primary: #1C1C1E;
+  --text-secondary: #6E6E73;
+  --border: #E5E5EA;
+  --primary: #E60023; /* Un rojo un poco más vibrante para modo claro */
+  --primary-dark: #C8102E;
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);
