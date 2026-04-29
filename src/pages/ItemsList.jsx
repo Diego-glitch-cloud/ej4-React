@@ -2,18 +2,8 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { fetchAlbumsByTerm } from '../services/itunesApi';
 import AlbumCard from '../components/AlbumCard';
+import { FAVORITE_BANDS } from '../data/constants';
 import './ItemsList.css';
-
-// Las bandas favoritas del usuario
-const FAVORITE_BANDS = [
-  'Geese', 'Metallica', 'Pink Floyd', 'The Strokes', 'Alice in Chains', 
-  'The Smashing Pumpkins', 'Slowdive', 'My Bloody Valentine', 'Rush', 
-  'The Smiths', 'Deftones', 'Radiohead', 'Black Sabbath', 'Soundgarden', 
-  'Tool', 'Avenged Sevenfold', 'American Football', 'Title Fight', 
-  'Candelabro', 'Black Country, New Road', 'Cocteau Twins', 'Deafheaven', 
-  'The Cure', 'Nirvana', 'Sweet Trip', 'Death Grips', 'Jeff Buckley', 
-  'Portishead', 'The Cranberries', 'Alvvays'
-];
 
 export default function ItemsList() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,6 +15,10 @@ export default function ItemsList() {
   
   const [searchTerm, setSearchTerm] = useState(initialQuery);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialQuery);
+
+  // Filtros adicionales
+  const [selectedGenre, setSelectedGenre] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
 
   // 1. Cargar álbumes curados iniciales (solo si no hay búsqueda activa inicial)
   useEffect(() => {
@@ -107,7 +101,19 @@ export default function ItemsList() {
   }, [debouncedSearchTerm]);
 
   const isSearching = debouncedSearchTerm.trim().length > 0;
-  const displayedAlbums = isSearching ? searchAlbums : curatedAlbums;
+  const baseAlbums = isSearching ? searchAlbums : curatedAlbums;
+
+  // Extraer valores únicos para los filtros a partir de los resultados base
+  const uniqueGenres = [...new Set(baseAlbums.map(a => a.primaryGenreName))].filter(Boolean).sort();
+  const uniqueYears = [...new Set(baseAlbums.map(a => a.releaseDate ? new Date(a.releaseDate).getFullYear() : null))].filter(Boolean).sort((a, b) => b - a);
+
+  // Aplicar filtros de género y año
+  const displayedAlbums = baseAlbums.filter(album => {
+    const matchGenre = selectedGenre ? album.primaryGenreName === selectedGenre : true;
+    const year = album.releaseDate ? new Date(album.releaseDate).getFullYear() : null;
+    const matchYear = selectedYear ? year === Number(selectedYear) : true;
+    return matchGenre && matchYear;
+  });
 
   return (
     <div className="items-list-page" style={{ minHeight: '100vh', paddingBottom: '4rem' }}>
@@ -129,6 +135,34 @@ export default function ItemsList() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+
+          {!loading && baseAlbums.length > 0 && (
+            <div className="filters-container" style={{ display: 'flex', gap: '1rem', marginTop: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <select 
+                value={selectedGenre} 
+                onChange={(e) => setSelectedGenre(e.target.value)}
+                className="filter-select"
+                style={{ padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', outline: 'none' }}
+              >
+                <option value="">Todos los Géneros</option>
+                {uniqueGenres.map(genre => (
+                  <option key={genre} value={genre}>{genre}</option>
+                ))}
+              </select>
+
+              <select 
+                value={selectedYear} 
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="filter-select"
+                style={{ padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', outline: 'none' }}
+              >
+                <option value="">Todos los Años</option>
+                {uniqueYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </header>
 
         {loading ? (

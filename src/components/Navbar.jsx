@@ -2,6 +2,7 @@ import { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchAlbumsByTerm } from '../services/itunesApi';
 import { ThemeContext } from '../contexts/ThemeContext';
+import { CULT_BANDS } from '../data/constants';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -9,9 +10,8 @@ export default function Navbar() {
   const { theme, toggleTheme } = useContext(ThemeContext);
 
   const handleRandomAlbum = async () => {
-    // Array de bandas de culto para el botón sorpresa
-    const bands = ['Radiohead', 'The Strokes', 'Pink Floyd', 'Metallica', 'Slowdive', 'My Bloody Valentine', 'Deftones'];
-    const randomBand = bands[Math.floor(Math.random() * bands.length)];
+    // Tomamos la constante externa importada
+    const randomBand = CULT_BANDS[Math.floor(Math.random() * CULT_BANDS.length)];
     
     try {
       const albums = await fetchAlbumsByTerm(randomBand, 10);
@@ -38,6 +38,7 @@ export default function Navbar() {
       <ul className="navbar-links">
         <li><Link to="/">Inicio</Link></li>
         <li><Link to="/items">Álbumes</Link></li>
+        <li><Link to="/favorites">Favoritos</Link></li>
         <li>
           <button onClick={handleRandomAlbum} className="btn-random">
             Aleatorio
