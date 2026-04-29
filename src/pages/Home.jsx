@@ -12,15 +12,15 @@ export default function Home() {
   useEffect(() => {
     const loadHomeData = async () => {
       try {
-        // Hero: Radiohead (The Bends o OK Computer)
-        const radiohead = await fetchAlbumsByTerm('Radiohead The Bends', 1);
+        // Hero: Radiohead In Rainbows
+        const radiohead = await fetchAlbumsByTerm('Radiohead In Rainbows', 1);
         if (radiohead.length) setHeroAlbum(radiohead[0]);
 
         // Destacados
         const mbv = await fetchAlbumsByTerm('My Bloody Valentine Loveless', 1);
         const bowie = await fetchAlbumsByTerm('David Bowie Ziggy Stardust', 1);
         const joyDivision = await fetchAlbumsByTerm('Joy Division Unknown Pleasures', 1);
-        
+
         setFeatured([...mbv, ...bowie, ...joyDivision]);
       } catch (error) {
         console.error("Error cargando el inicio", error);
@@ -34,17 +34,17 @@ export default function Home() {
       {/* HERO SECTION (DARK RED) */}
       {heroAlbum && (
         <section className="home-hero">
-          <div 
-            className="hero-bg-image" 
+          <div
+            className="hero-bg-image"
             style={{ backgroundImage: `url(${heroAlbum.artworkUrl100.replace('100x100bb', '1000x1000bb')})` }}
           ></div>
           <div className="hero-gradient"></div>
           <div className="container hero-content">
-            <span className="hero-tag">Nuevo Artículo</span>
+            <span className="hero-tag">Álbum Destacado</span>
             <h1 className="hero-title">El legado eterno de {heroAlbum.artistName}</h1>
             <p className="hero-subtitle">A años de su formación, revisitamos la discografía de una de las bandas más influyentes de nuestra era.</p>
             <button className="btn-primary hero-btn" onClick={() => navigate(`/items/${heroAlbum.collectionId}`)}>
-              Leer Artículo →
+              Ver Álbum →
             </button>
           </div>
         </section>
@@ -78,7 +78,7 @@ export default function Home() {
           <div className="playlist-area">
             <h3 className="area-title">En Reproducción</h3>
             <p className="area-subtitle">Nuestras recomendaciones semanales.</p>
-            
+
             {/* Mock Playlist Items */}
             <div className="mini-track">
               <img src="https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/4b/5e/5c/4b5e5c3e-9086-444f-c4f4-5f2129eb4945/14UMGIM07662.rgb.jpg/100x100bb.jpg" alt="Enjoy the silence" />
@@ -104,7 +104,7 @@ export default function Home() {
 
             <Link to="/items" className="btn-secondary full-width">♫ Ver Playlist Completa</Link>
           </div>
-          
+
           <div className="quote-area">
             <div className="quote-content">
               <span className="quote-icon">“</span>

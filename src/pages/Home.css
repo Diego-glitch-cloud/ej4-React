@@ -1,7 +1,6 @@
 /* Home General */
 .home-page {
-  /* Override del container de Layout para que el Hero ocupe el 100% */
-  margin-top: -2rem; /* compensar el padding de layout */
+  width: 100%;
 }
 
 /* HERO SECTION */

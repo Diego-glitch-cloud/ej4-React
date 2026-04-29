@@ -1,7 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchAlbumById } from '../services/itunesApi';
 import './ItemDetail.css';
+
+const MUSIC_QUOTES = [
+  { text: "La música puede cambiar el mundo porque puede cambiar a las personas.", author: "Bono" },
+  { text: "Una cosa buena de la música, es que cuando te golpea, no sientes dolor.", author: "Bob Marley" },
+  { text: "Sin música, la vida sería un error.", author: "Friedrich Nietzsche" },
+  { text: "La música expresa lo que no puede ser dicho y aquello sobre lo que es imposible permanecer en silencio.", author: "Victor Hugo" },
+  { text: "Donde las palabras fallan, la música habla.", author: "Hans Christian Andersen" },
+  { text: "La música es el lenguaje universal de la humanidad.", author: "Henry Wadsworth Longfellow" },
+  { text: "La música es el arte más directo, entra por el oído y va al corazón.", author: "Magdalena Martínez" }
+];
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -9,6 +19,12 @@ export default function ItemDetail() {
   const [albumData, setAlbumData] = useState(null);
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Elegir una frase basada en el ID del álbum (para que siempre sea la misma para un álbum específico)
+  const albumQuote = useMemo(() => {
+    const seed = parseInt(id) || 0;
+    return MUSIC_QUOTES[seed % MUSIC_QUOTES.length];
+  }, [id]);
 
   useEffect(() => {
     const getAlbumDetails = async () => {
@@ -97,9 +113,9 @@ export default function ItemDetail() {
           <div className="quote-block">
             <span className="quote-mark">“</span>
             <blockquote>
-              La música puede cambiar el mundo porque puede cambiar a las personas.
+              {albumQuote.text}
             </blockquote>
-            <cite>— Bono</cite>
+            <cite>— {albumQuote.author}</cite>
           </div>
         </div>
       </div>
