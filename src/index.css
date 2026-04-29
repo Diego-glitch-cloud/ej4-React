@@ -1,16 +1,25 @@
-/* Estilos globales y reseteo */
+/* Variables del Design System Premium (Paleta A: Rojo Editorial Clásico) */
 :root {
-  --primary-color: #ff4757;
-  --primary-hover: #ff6b81;
-  --bg-color: #f8f9fa;
-  --text-color: #2f3542;
+  /* Colores */
+  --primary: #C8102E;
+  --primary-dark: #8A0E21;
+  --bg-main: #0B0B0C;
+  --surface: #17181A;
+  --text-primary: #F5F5F5;
+  --text-secondary: #A1A1AA;
+  --accent: #E63946;
+  --border: #2A2B2E;
+
+  /* Tipografía */
+  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Inter', sans-serif;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  font-family: var(--font-sans);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -20,6 +29,9 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .container {
@@ -32,29 +44,31 @@ h1, h2, h3, h4, h5, h6 {
 .btn-primary, .btn-secondary {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: 4px;
   text-decoration: none;
+  font-family: var(--font-sans);
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .btn-primary {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: var(--primary);
+  color: #fff;
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-hover);
+  background-color: var(--accent);
   transform: translateY(-2px);
 }
 
 .btn-secondary {
-  background-color: #e2e8f0;
-  color: #475569;
+  background-color: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
 }
 
 .btn-secondary:hover {
-  background-color: #cbd5e1;
+  background-color: var(--border);
 }
