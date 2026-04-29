@@ -23,10 +23,9 @@ export default function ItemsList() {
   // 1. Cargar álbumes curados iniciales (solo si no hay búsqueda activa inicial)
   useEffect(() => {
     const loadCurated = async () => {
-      // Si la URL ya tiene una búsqueda inicial, no saturamos cargando curados
-      if (initialQuery) return;
-
-      setLoading(true);
+      if (!initialQuery) {
+        setLoading(true);
+      }
       try {
         const shuffledBands = [...DEFAULT_BANDS].sort(() => 0.5 - Math.random());
         const selectedBands = shuffledBands.slice(0, 12);
@@ -48,9 +47,11 @@ export default function ItemsList() {
 
         setCuratedAlbums(shuffledAlbums);
       } catch (error) {
-        console.error("Error al cargar los álbumes", error);
+        console.error("Error al cargar los álbumes curados", error);
       } finally {
-        setLoading(false);
+        if (!initialQuery) {
+          setLoading(false);
+        }
       }
     };
 
